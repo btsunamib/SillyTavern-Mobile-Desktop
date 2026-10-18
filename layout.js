@@ -5,6 +5,7 @@ export const DEFAULTS = Object.freeze({
     canvas: 1200,
     left: 260,
     right: 300,
+    topInset: 32,
     showLeft: true,
     showRight: true,
 });
@@ -18,10 +19,12 @@ export function normalize(input = {}) {
     if (!input || typeof input !== 'object') input = {};
     return {
         enabled: input.enabled === true,
-        mode: input.mode === 'fit' ? 'fit' : 'desktop',
+        // Migrate 1.0's compact mode to the native desktop layout as well.
+        mode: 'desktop',
         canvas: Math.round(clamp(input.canvas, 1024, 2400, DEFAULTS.canvas)),
         left: Math.round(clamp(input.left, 80, 600, DEFAULTS.left)),
         right: Math.round(clamp(input.right, 80, 600, DEFAULTS.right)),
+        topInset: Math.round(clamp(input.topInset, 0, 120, DEFAULTS.topInset)),
         showLeft: input.showLeft !== false,
         showRight: input.showRight !== false,
     };
@@ -29,9 +32,10 @@ export function normalize(input = {}) {
 
 export function calculateLayout(width, settings) {
     const w = Math.max(1, Number(width) || 1);
-    let left = settings.showLeft ? settings.left : 0;
-    let right = settings.showRight ? settings.right : 0;
-    const minimumChat = Math.min(w, settings.mode === 'desktop' ? 320 : 180);
+    // Visibility never affects column geometry: a closed side stays empty.
+    let left = settings.left;
+    let right = settings.right;
+    const minimumChat = Math.min(w, 320);
     const budget = Math.max(0, w - minimumChat);
     if (left + right > budget) {
         const ratio = budget / (left + right);

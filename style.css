@@ -1,6 +1,7 @@
-/* Only active while this extension's switch is on. Never disable core stylesheets. */
+/* Native desktop geometry, fixed side slots, and a shared top safe area. */
 body.mdl-active {
     --sheldWidth: var(--mdl-center) !important;
+    --mdl-top-gap: max(env(safe-area-inset-top, 0px), var(--mdl-top-padding, 32px));
     overflow: hidden !important;
 }
 
@@ -21,24 +22,17 @@ body.mdl-active #top-settings-holder {
 
 body.mdl-active #top-bar,
 body.mdl-active #top-settings-holder {
-    top: 0 !important;
+    top: var(--mdl-top-gap) !important;
     height: var(--topBarBlockSize, 40px) !important;
     padding-inline: 0 !important;
 }
 
-body.mdl-active #top-settings-holder > .drawer { min-width: 0; }
-body.mdl-active #top-settings-holder > .drawer > .drawer-toggle > .drawer-icon {
-    font-size: clamp(13px, calc(var(--mdl-center) / 18), var(--topBarIconSize, 24px)) !important;
-    padding-inline: 1px !important;
-    width: auto !important;
-}
-
 body.mdl-active #sheld {
-    top: var(--topBarBlockSize, 40px) !important;
+    top: calc(var(--mdl-top-gap) + var(--topBarBlockSize, 40px)) !important;
     bottom: 0 !important;
-    height: calc(100vh - var(--topBarBlockSize, 40px)) !important;
-    height: calc(100dvh - var(--topBarBlockSize, 40px)) !important;
-    max-height: calc(100dvh - var(--topBarBlockSize, 40px)) !important;
+    height: calc(100vh - var(--mdl-top-gap) - var(--topBarBlockSize, 40px)) !important;
+    height: calc(100dvh - var(--mdl-top-gap) - var(--topBarBlockSize, 40px)) !important;
+    max-height: calc(100dvh - var(--mdl-top-gap) - var(--topBarBlockSize, 40px)) !important;
     min-height: 0 !important;
     padding: 0 !important;
     padding-bottom: env(safe-area-inset-bottom, 0px) !important;
@@ -48,16 +42,14 @@ body.mdl-active #left-nav-panel,
 body.mdl-active #right-nav-panel {
     box-sizing: border-box !important;
     position: fixed !important;
-    top: 0 !important;
+    top: var(--mdl-top-gap) !important;
     bottom: 0 !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    max-height: 100dvh !important;
+    height: calc(100vh - var(--mdl-top-gap)) !important;
+    height: calc(100dvh - var(--mdl-top-gap)) !important;
+    max-height: calc(100dvh - var(--mdl-top-gap)) !important;
     min-height: 0 !important;
     min-width: 0 !important;
     margin: 0 !important;
-    border-radius: 0 !important;
-    padding: 6px !important;
     display: flex !important;
     flex-direction: column !important;
     overflow: auto !important;
@@ -99,13 +91,29 @@ body.mdl-active #top-settings-holder .drawer-content:not(#left-nav-panel):not(#r
     position: fixed !important;
     left: var(--mdl-left) !important;
     right: auto !important;
-    top: var(--topBarBlockSize, 40px) !important;
+    top: calc(var(--mdl-top-gap) + var(--topBarBlockSize, 40px)) !important;
     width: var(--mdl-center) !important;
     min-width: 0 !important;
     max-width: var(--mdl-center) !important;
     margin: 0 !important;
-    max-height: calc(100dvh - var(--topBarBlockSize, 40px)) !important;
+    max-height: calc(100dvh - var(--mdl-top-gap) - var(--topBarBlockSize, 40px)) !important;
     z-index: 4001 !important;
+}
+
+body.mdl-active #character_popup,
+body.mdl-active #world_popup {
+    position: fixed !important;
+    box-sizing: border-box !important;
+    left: var(--mdl-left) !important;
+    right: auto !important;
+    top: calc(var(--mdl-top-gap) + var(--topBarBlockSize, 40px)) !important;
+    width: var(--mdl-center) !important;
+    min-width: 0 !important;
+    max-width: var(--mdl-center) !important;
+    margin: 0 !important;
+    height: calc(100dvh - var(--mdl-top-gap) - var(--topBarBlockSize, 40px)) !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - var(--mdl-top-gap) - var(--topBarBlockSize, 40px)) !important;
 }
 
 body.mdl-active #send_form,
@@ -116,7 +124,7 @@ body.mdl-active #send_textarea { min-width: 0 !important; }
 
 .mdl-divider {
     position: fixed;
-    top: 0;
+    top: var(--mdl-top-gap, 0px);
     bottom: 0;
     width: 14px;
     margin-left: -7px;
@@ -200,7 +208,7 @@ body.mdl-dragging { user-select: none !important; }
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 12px;
+    padding: max(12px, var(--mdl-screen-top, 32px), env(safe-area-inset-top, 0px)) 12px max(12px, env(safe-area-inset-bottom, 0px));
     background: #0009;
     pointer-events: auto;
 }

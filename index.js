@@ -10,6 +10,7 @@ let active = false;
 let viewport;
 let viewportCreated = false;
 let originalViewport;
+let mobileStyles = [];
 let snapshots = [];
 let frame;
 let abort;
@@ -52,16 +53,11 @@ function syncDrawers() {
 
 function setViewport() {
     if (!active || !viewport) return;
-    if (settings.mode === 'desktop') {
-        // A wide layout viewport activates ST's real desktop CSS media queries.
-        // Keep pinch zoom available. UA/device-specific core behaviour is untouched.
-        const physicalWidth = Math.max(1, window.screen.width || window.outerWidth || 390);
-        const scale = Math.min(1, physicalWidth / settings.canvas);
-        const content = `width=${settings.canvas}, initial-scale=${scale.toFixed(5)}, user-scalable=yes, viewport-fit=cover`;
-        if (viewport.content !== content) viewport.content = content;
-    } else {
-        viewport.content = 'width=device-width, initial-scale=1, user-scalable=yes, viewport-fit=cover';
-    }
+    // Use native desktop media queries, keeping pinch zoom available.
+    const physicalWidth = Math.max(1, window.screen.width || window.outerWidth || 390);
+    const scale = Math.min(1, physicalWidth / settings.canvas);
+    const content = `width=${settings.canvas}, initial-scale=${scale.toFixed(5)}, user-scalable=yes, viewport-fit=cover`;
+    if (viewport.content !== content) viewport.content = content;
 }
 
 function beginLayout() {
@@ -79,6 +75,12 @@ function beginLayout() {
         document.head.append(viewport);
     }
     active = true;
+    // iOS rules in mobile-styles.css also run outside its mobile media query.
+    // Temporarily suspend only this core sheet so native desktop styling wins.
+    mobileStyles = [...document.querySelectorAll('link[rel="stylesheet"][href]')]
+        .filter(link => /\/css\/mobile-styles\.css$/.test(new URL(link.href).pathname))
+        .map(link => ({ link, disabled: link.disabled }));
+    mobileStyles.forEach(({ link }) => { link.disabled = true; });
     document.body.classList.add('mdl-active');
     setViewport();
     IDS.forEach(id => {
@@ -100,7 +102,9 @@ function endLayout() {
     document.body.classList.remove('mdl-active');
     delete document.body.dataset.mdlLeft;
     delete document.body.dataset.mdlRight;
-    ['left', 'right', 'center'].forEach(key => document.body.style.removeProperty(`--mdl-${key}`));
+    ['left', 'right', 'center', 'top-padding'].forEach(key => document.body.style.removeProperty(`--mdl-${key}`));
+    mobileStyles.forEach(({ link, disabled }) => { link.disabled = disabled; });
+    mobileStyles = [];
     snapshots.filter(Boolean).forEach(({ element, names }) => names.forEach(([name, present]) => element.classList.toggle(name, present)));
     snapshots = [];
     if (viewportCreated) viewport?.remove();
@@ -115,6 +119,7 @@ function endLayout() {
 
 function positionControls() {
     if (!root) return;
+    root.style.setProperty('--mdl-screen-top', `${settings?.topInset ?? 32}px`);
     const vv = window.visualViewport;
     const scale = vv?.scale || 1;
     const x = vv?.offsetLeft || 0;
@@ -132,6 +137,10 @@ function updateLayout() {
     if (!active) return;
     const width = document.documentElement.clientWidth;
     lastLayout = calculateLayout(width, settings);
+    // A desktop canvas shrinks visually on mobile. Reserve the requested space
+    // at the initial fit scale, without changing the gap during pinch zoom.
+    const baseScale = Math.min(1, (window.screen.width || width) / width);
+    document.body.style.setProperty('--mdl-top-padding', `${settings.topInset / baseScale}px`);
     Object.entries(lastLayout).forEach(([key, value]) => {
         if (key !== 'width') document.body.style.setProperty(`--mdl-${key}`, `${value}px`);
     });
@@ -151,7 +160,7 @@ function updateLayout() {
         handle.setAttribute('aria-valuenow', String(lastLayout[side]));
     });
     const info = byId('mdl-effective');
-    if (info) info.textContent = `实际宽度：左 ${lastLayout.left} / 聊天 ${Math.round(lastLayout.center)} / 右 ${lastLayout.right} px。空间不足时按比例缩小侧栏。`;
+    if (info) info.textContent = `固定宽度：左 ${lastLayout.left} / 聊天 ${Math.round(lastLayout.center)} / 右 ${lastLayout.right} px。收起侧栏后保留空白，聊天区位置与宽度不变。`;
 }
 
 function schedule() {
@@ -166,7 +175,6 @@ function renderFields() {
             else input.value = value;
         });
     }
-    byId('mdl-desktop-options').hidden = settings.mode !== 'desktop';
     root.querySelectorAll('[data-mdl-side]').forEach(button => {
         const side = button.dataset.mdlSide;
         button.hidden = !settings.enabled;
@@ -218,14 +226,16 @@ function createControls() {
         <section id="mdl-dialog" role="dialog" aria-modal="true" aria-labelledby="mdl-title" tabindex="-1">
           <header><div><strong id="mdl-title">手机桌面布局</strong><small id="mdl-status"></small></div><button type="button" id="mdl-close" aria-label="关闭设置">×</button></header>
           <label class="mdl-check"><input type="checkbox" data-mdl-key="enabled">启用桌面布局</label>
-          <label class="mdl-field">布局模式<select data-mdl-key="mode"><option value="desktop">桌面画布（推荐，可双指缩放）</option><option value="fit">屏幕内三栏（字号保持手机大小）</option></select></label>
+          <p>使用酒馆原生 PC 样式。中间聊天区固定，两侧收起后原位置留白。</p>
           <div id="mdl-desktop-options"><label class="mdl-field">桌面画布宽度（px）<input type="number" min="1024" max="2400" step="16" data-mdl-key="canvas"></label><p>宽画布会整体缩小以显示桌面界面；横屏使用更清晰。双指放大后可拖动查看。</p></div>
           <div class="mdl-width"><label for="mdl-left-range">左侧宽度（px）</label><input type="number" min="80" max="600" data-mdl-key="left" aria-label="左侧宽度"><input id="mdl-left-range" type="range" min="80" max="600" step="1" data-mdl-key="left"></div>
           <div class="mdl-width"><label for="mdl-right-range">右侧宽度（px）</label><input type="number" min="80" max="600" data-mdl-key="right" aria-label="右侧宽度"><input id="mdl-right-range" type="range" min="80" max="600" step="1" data-mdl-key="right"></div>
+          <div class="mdl-width"><label for="mdl-top-range">顶部留白（屏幕 px）</label><input type="number" min="0" max="120" data-mdl-key="topInset" aria-label="顶部留白"><input id="mdl-top-range" type="range" min="0" max="120" step="1" data-mdl-key="topInset"></div>
+          <p>默认预留 32 px 给平板时间、状态栏，同时尊重系统安全区域。若仍遮挡，可增加此数值；留白不会被桌面画布缩小。</p>
           <div class="mdl-row"><label class="mdl-check"><input type="checkbox" data-mdl-key="showLeft">显示左栏</label><label class="mdl-check"><input type="checkbox" data-mdl-key="showRight">显示右栏</label></div>
           <p id="mdl-effective" aria-live="polite"></p>
-          <p>也可拖动两条分隔线调整宽度。顶部原有左右栏图标仍可用于收起、展开；收起后聊天区会自动扩宽。</p>
-          <div class="mdl-row mdl-presets"><button type="button" data-mdl-preset="balanced">均衡三栏</button><button type="button" data-mdl-preset="chat">聊天优先</button><button type="button" data-mdl-preset="fit">手机三栏</button></div>
+          <p>可拖动分隔线调整宽度。顶部原有左右栏图标可收起、展开；隐藏内容后，两侧宽度仍保留。</p>
+          <div class="mdl-row mdl-presets"><button type="button" data-mdl-preset="balanced">均衡三栏</button><button type="button" data-mdl-preset="chat">聊天优先</button></div>
           <footer><button type="button" id="mdl-restore">恢复原生布局</button><button type="button" id="mdl-reset">重置参数</button></footer>
         </section>
       </div>`;
@@ -243,9 +253,9 @@ function createControls() {
         else if (target.dataset.mdlPreset) {
             const preset = target.dataset.mdlPreset;
             settings = { ...settings, enabled: true, showLeft: true, showRight: true,
-                mode: preset === 'fit' ? 'fit' : 'desktop', canvas: 1200,
-                left: preset === 'chat' ? 200 : preset === 'fit' ? 100 : 260,
-                right: preset === 'chat' ? 240 : preset === 'fit' ? 110 : 300 };
+                mode: 'desktop', canvas: 1200,
+                left: preset === 'chat' ? 200 : 260,
+                right: preset === 'chat' ? 240 : 300 };
             apply({ viewportChanged: true });
         }
     });
@@ -304,7 +314,7 @@ function createDivider(side) {
         if (!start || start.pointer !== event.pointerId) return;
         const delta = (event.clientX - start.x) * (side === 'left' ? 1 : -1);
         const other = side === 'left' ? lastLayout.right : lastLayout.left;
-        const minChat = settings.mode === 'desktop' ? 320 : 180;
+        const minChat = 320;
         const max = Math.max(80, Math.min(600, lastLayout.width - other - minChat));
         settings[side] = Math.round(clamp(start.width + delta, 80, max));
         apply({ save: false });
