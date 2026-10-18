@@ -33,3 +33,10 @@ test('top gap handles zero, oversized and corrupt saved values', () => {
     assert.equal(normalize({ topInset: 'broken' }).topInset, 32);
     assert.deepEqual(normalize(null), normalize());
 });
+
+test('older desktop preferences migrate to native device size; scaling requires explicit opt-in', () => {
+    assert.equal(normalize({ mode: 'desktop', canvas: 1200, enabled: true }).scaleDesktop, false);
+    assert.equal(normalize({ scaleDesktop: false }).scaleDesktop, false);
+    assert.equal(normalize({ scaleDesktop: true }).scaleDesktop, true);
+    assert.equal(normalize({ scaleDesktop: 'true' }).scaleDesktop, false);
+});

@@ -53,10 +53,14 @@ function syncDrawers() {
 
 function setViewport() {
     if (!active || !viewport) return;
-    // Use native desktop media queries, keeping pinch zoom available.
-    const physicalWidth = Math.max(1, window.screen.width || window.outerWidth || 390);
-    const scale = Math.min(1, physicalWidth / settings.canvas);
-    const content = `width=${settings.canvas}, initial-scale=${scale.toFixed(5)}, user-scalable=yes, viewport-fit=cover`;
+    // Native desktop styles do not require shrinking the page: the core mobile
+    // stylesheet is suspended separately. Only scale if explicitly requested.
+    let content = 'width=device-width, initial-scale=1, user-scalable=yes, viewport-fit=cover, interactive-widget=resizes-content';
+    if (settings.scaleDesktop) {
+        const physicalWidth = Math.max(1, window.screen.width || window.outerWidth || 390);
+        const scale = Math.min(1, physicalWidth / settings.canvas);
+        content = `width=${settings.canvas}, initial-scale=${scale.toFixed(5)}, user-scalable=yes, viewport-fit=cover, interactive-widget=resizes-content`;
+    }
     if (viewport.content !== content) viewport.content = content;
 }
 
@@ -128,7 +132,7 @@ function positionControls() {
     const height = (vv?.height || window.innerHeight) * scale;
     root.style.width = `${width}px`;
     root.style.height = `${height}px`;
-    root.style.transform = `translate(${x}px, ${y}px) scale(${1 / scale})`;
+    root.style.transform = scale === 1 && x === 0 && y === 0 ? 'none' : `translate(${x}px, ${y}px) scale(${1 / scale})`;
 }
 
 function updateLayout() {
@@ -139,7 +143,7 @@ function updateLayout() {
     lastLayout = calculateLayout(width, settings);
     // A desktop canvas shrinks visually on mobile. Reserve the requested space
     // at the initial fit scale, without changing the gap during pinch zoom.
-    const baseScale = Math.min(1, (window.screen.width || width) / width);
+    const baseScale = settings.scaleDesktop ? Math.min(1, (window.screen.width || width) / width) : 1;
     document.body.style.setProperty('--mdl-top-padding', `${settings.topInset / baseScale}px`);
     Object.entries(lastLayout).forEach(([key, value]) => {
         if (key !== 'width') document.body.style.setProperty(`--mdl-${key}`, `${value}px`);
@@ -175,6 +179,7 @@ function renderFields() {
             else input.value = value;
         });
     }
+    byId('mdl-desktop-options').hidden = !settings.scaleDesktop;
     root.querySelectorAll('[data-mdl-side]').forEach(button => {
         const side = button.dataset.mdlSide;
         button.hidden = !settings.enabled;
@@ -227,7 +232,9 @@ function createControls() {
           <header><div><strong id="mdl-title">手机桌面布局</strong><small id="mdl-status"></small></div><button type="button" id="mdl-close" aria-label="关闭设置">×</button></header>
           <label class="mdl-check"><input type="checkbox" data-mdl-key="enabled">启用桌面布局</label>
           <p>使用酒馆原生 PC 样式。中间聊天区固定，两侧收起后原位置留白。</p>
-          <div id="mdl-desktop-options"><label class="mdl-field">桌面画布宽度（px）<input type="number" min="1024" max="2400" step="16" data-mdl-key="canvas"></label><p>宽画布会整体缩小以显示桌面界面；横屏使用更清晰。双指放大后可拖动查看。</p></div>
+          <p>默认按设备原始大小显示，不缩放整个页面。左右宽度按当前屏幕分配。</p>
+          <label class="mdl-check"><input type="checkbox" data-mdl-key="scaleDesktop">缩小显示完整桌面（可选，文字会变小）</label>
+          <div id="mdl-desktop-options" hidden><label class="mdl-field">桌面画布宽度（px）<input type="number" min="1024" max="2400" step="16" data-mdl-key="canvas"></label><p>仅手动开启此选项时缩放整个页面。取消勾选即可恢复原始显示大小。</p></div>
           <div class="mdl-width"><label for="mdl-left-range">左侧宽度（px）</label><input type="number" min="80" max="600" data-mdl-key="left" aria-label="左侧宽度"><input id="mdl-left-range" type="range" min="80" max="600" step="1" data-mdl-key="left"></div>
           <div class="mdl-width"><label for="mdl-right-range">右侧宽度（px）</label><input type="number" min="80" max="600" data-mdl-key="right" aria-label="右侧宽度"><input id="mdl-right-range" type="range" min="80" max="600" step="1" data-mdl-key="right"></div>
           <div class="mdl-width"><label for="mdl-top-range">顶部留白（屏幕 px）</label><input type="number" min="0" max="120" data-mdl-key="topInset" aria-label="顶部留白"><input id="mdl-top-range" type="range" min="0" max="120" step="1" data-mdl-key="topInset"></div>
@@ -267,7 +274,7 @@ function createControls() {
         if (input.type === 'number' && event.type === 'input') return;
         if (input.type === 'range' && event.type === 'change') return;
         settings[key] = input.type === 'checkbox' ? input.checked : input.type === 'number' || input.type === 'range' ? Number(input.value) : input.value;
-        apply({ viewportChanged: key === 'mode' || key === 'canvas' });
+        apply({ viewportChanged: key === 'scaleDesktop' || key === 'canvas' });
     };
     listen(root, 'input', change);
     listen(root, 'change', change);

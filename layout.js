@@ -3,6 +3,7 @@ export const DEFAULTS = Object.freeze({
     enabled: false,
     mode: 'desktop',
     canvas: 1200,
+    scaleDesktop: false,
     left: 260,
     right: 300,
     topInset: 32,
@@ -22,6 +23,8 @@ export function normalize(input = {}) {
         // Migrate 1.0's compact mode to the native desktop layout as well.
         mode: 'desktop',
         canvas: Math.round(clamp(input.canvas, 1024, 2400, DEFAULTS.canvas)),
+        // Older releases forced scaling; migrate them to native device size.
+        scaleDesktop: input.scaleDesktop === true,
         left: Math.round(clamp(input.left, 80, 600, DEFAULTS.left)),
         right: Math.round(clamp(input.right, 80, 600, DEFAULTS.right)),
         topInset: Math.round(clamp(input.topInset, 0, 120, DEFAULTS.topInset)),
