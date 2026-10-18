@@ -6,6 +6,7 @@ let context;
 let settings;
 let root;
 let modal;
+let settingsOpener;
 let active = false;
 let viewport;
 let viewportCreated = false;
@@ -180,6 +181,7 @@ function renderFields() {
         });
     }
     byId('mdl-desktop-options').hidden = !settings.scaleDesktop;
+    byId('mdl-toolbar').hidden = !settings.showFloating;
     root.querySelectorAll('[data-mdl-side]').forEach(button => {
         const side = button.dataset.mdlSide;
         button.hidden = !settings.enabled;
@@ -207,6 +209,7 @@ function toggleSide(side) {
 }
 
 function openSettings() {
+    settingsOpener = document.activeElement;
     modal.hidden = false;
     renderFields();
     positionControls();
@@ -215,7 +218,9 @@ function openSettings() {
 
 function closeSettings() {
     modal.hidden = true;
-    byId('mdl-launcher').focus({ preventScroll: true });
+    const target = [settingsOpener, byId('mdl-launcher'), byId('mdl-settings-entry')?.querySelector('button')]
+        .find(element => element?.isConnected && element.getClientRects().length);
+    target?.focus({ preventScroll: true });
 }
 
 function createControls() {
@@ -226,11 +231,14 @@ function createControls() {
         <button type="button" data-mdl-side="left" aria-label="显示或隐藏左栏">左</button>
         <button type="button" id="mdl-launcher" aria-label="打开手机桌面布局设置">布局</button>
         <button type="button" data-mdl-side="right" aria-label="显示或隐藏右栏">右</button>
+        <button type="button" id="mdl-hide-floating" aria-label="隐藏悬浮按钮" title="隐藏悬浮按钮；可在扩展设置中重新开启">×</button>
       </div>
       <div id="mdl-modal" hidden>
         <section id="mdl-dialog" role="dialog" aria-modal="true" aria-labelledby="mdl-title" tabindex="-1">
           <header><div><strong id="mdl-title">手机桌面布局</strong><small id="mdl-status"></small></div><button type="button" id="mdl-close" aria-label="关闭设置">×</button></header>
           <label class="mdl-check"><input type="checkbox" data-mdl-key="enabled">启用桌面布局</label>
+          <label class="mdl-check"><input type="checkbox" data-mdl-key="showFloating">显示悬浮按钮</label>
+          <p>关闭后仍可在“扩展设置 → 手机桌面布局 → 打开布局设置”中重新开启。</p>
           <p>使用酒馆原生 PC 样式。中间聊天区固定，两侧收起后原位置留白。</p>
           <p>默认按设备原始大小显示，不缩放整个页面。左右宽度按当前屏幕分配。</p>
           <label class="mdl-check"><input type="checkbox" data-mdl-key="scaleDesktop">缩小显示完整桌面（可选，文字会变小）</label>
@@ -254,6 +262,7 @@ function createControls() {
         if (!target) return;
         if (target.id === 'mdl-launcher') openSettings();
         else if (target.id === 'mdl-close') closeSettings();
+        else if (target.id === 'mdl-hide-floating') { settings.showFloating = false; apply(); }
         else if (target.id === 'mdl-restore') { settings.enabled = false; apply(); }
         else if (target.id === 'mdl-reset') { settings = { ...DEFAULTS }; apply(); }
         else if (target.dataset.mdlSide) toggleSide(target.dataset.mdlSide);

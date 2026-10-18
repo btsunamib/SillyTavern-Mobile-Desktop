@@ -9,6 +9,7 @@ export const DEFAULTS = Object.freeze({
     topInset: 32,
     showLeft: true,
     showRight: true,
+    showFloating: true,
 });
 
 export function clamp(value, min, max, fallback = min) {
@@ -30,6 +31,7 @@ export function normalize(input = {}) {
         topInset: Math.round(clamp(input.topInset, 0, 120, DEFAULTS.topInset)),
         showLeft: input.showLeft !== false,
         showRight: input.showRight !== false,
+        showFloating: input.showFloating !== false,
     };
 }
 
