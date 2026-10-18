@@ -1,0 +1,250 @@
+/* Only active while this extension's switch is on. Never disable core stylesheets. */
+body.mdl-active {
+    --sheldWidth: var(--mdl-center) !important;
+    overflow: hidden !important;
+}
+
+body.mdl-active #sheld,
+body.mdl-active #top-bar,
+body.mdl-active #top-settings-holder {
+    box-sizing: border-box !important;
+    position: fixed !important;
+    left: var(--mdl-left) !important;
+    right: auto !important;
+    width: var(--mdl-center) !important;
+    min-width: 0 !important;
+    max-width: var(--mdl-center) !important;
+    margin: 0 !important;
+    transform: none !important;
+    resize: none !important;
+}
+
+body.mdl-active #top-bar,
+body.mdl-active #top-settings-holder {
+    top: 0 !important;
+    height: var(--topBarBlockSize, 40px) !important;
+    padding-inline: 0 !important;
+}
+
+body.mdl-active #top-settings-holder > .drawer { min-width: 0; }
+body.mdl-active #top-settings-holder > .drawer > .drawer-toggle > .drawer-icon {
+    font-size: clamp(13px, calc(var(--mdl-center) / 18), var(--topBarIconSize, 24px)) !important;
+    padding-inline: 1px !important;
+    width: auto !important;
+}
+
+body.mdl-active #sheld {
+    top: var(--topBarBlockSize, 40px) !important;
+    bottom: 0 !important;
+    height: calc(100vh - var(--topBarBlockSize, 40px)) !important;
+    height: calc(100dvh - var(--topBarBlockSize, 40px)) !important;
+    max-height: calc(100dvh - var(--topBarBlockSize, 40px)) !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+}
+
+body.mdl-active #left-nav-panel,
+body.mdl-active #right-nav-panel {
+    box-sizing: border-box !important;
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    padding: 6px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: auto !important;
+    transform: none !important;
+    resize: none !important;
+    transition: none !important;
+    animation: none !important;
+    z-index: 3001 !important;
+}
+body.mdl-active #left-nav-panel {
+    left: 0 !important;
+    right: auto !important;
+    width: var(--mdl-left) !important;
+    max-width: var(--mdl-left) !important;
+}
+body.mdl-active #right-nav-panel {
+    left: auto !important;
+    right: 0 !important;
+    width: var(--mdl-right) !important;
+    max-width: var(--mdl-right) !important;
+}
+body.mdl-active[data-mdl-left="0"] #left-nav-panel,
+body.mdl-active[data-mdl-right="0"] #right-nav-panel { display: none !important; }
+body.mdl-active #left-nav-panel > .scrollableInner {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: auto !important;
+}
+body.mdl-active #left-nav-panel > .drag-grabber,
+body.mdl-active #right-nav-panel > .drag-grabber,
+body.mdl-active #sheld > .drag-grabber,
+body.mdl-active #sheld .pull-tab,
+body.mdl-active #lm_button_panel_pin_div,
+body.mdl-active #rm_button_panel_pin_div { display: none !important; }
+
+/* Other toolbar drawers keep their overlay behaviour and stay within the screen. */
+body.mdl-active #top-settings-holder .drawer-content:not(#left-nav-panel):not(#right-nav-panel) {
+    box-sizing: border-box !important;
+    position: fixed !important;
+    left: var(--mdl-left) !important;
+    right: auto !important;
+    top: var(--topBarBlockSize, 40px) !important;
+    width: var(--mdl-center) !important;
+    min-width: 0 !important;
+    max-width: var(--mdl-center) !important;
+    margin: 0 !important;
+    max-height: calc(100dvh - var(--topBarBlockSize, 40px)) !important;
+    z-index: 4001 !important;
+}
+
+body.mdl-active #send_form,
+body.mdl-active #form_sheld,
+body.mdl-active #chat { min-width: 0 !important; max-width: 100% !important; }
+body.mdl-active #send_form { box-sizing: border-box; width: 100% !important; }
+body.mdl-active #send_textarea { min-width: 0 !important; }
+
+.mdl-divider {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 14px;
+    margin-left: -7px;
+    z-index: 4010;
+    cursor: col-resize;
+    touch-action: none;
+    background: transparent;
+}
+.mdl-divider::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 25%;
+    height: 50%;
+    width: max(2px, calc(var(--mdl-grip, 1) * 2px));
+    background: var(--SmartThemeQuoteColor, #8eb9ef);
+    opacity: 0.55;
+    border-radius: 4px;
+}
+.mdl-divider:hover::after,
+.mdl-divider:focus-visible::after,
+.mdl-dragging .mdl-divider::after { opacity: 1; width: max(4px, calc(var(--mdl-grip, 1) * 3px)); }
+.mdl-divider[hidden] { display: none !important; }
+body.mdl-dragging { user-select: none !important; }
+
+/* This layer counter-scales the visual viewport so controls remain touch sized. */
+#mdl-root {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform-origin: 0 0 !important;
+    pointer-events: none;
+    z-index: 2147483000 !important;
+    color: #edf2fa;
+    font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif;
+    text-align: left;
+}
+#mdl-root *, #mdl-root *::before, #mdl-root *::after { box-sizing: border-box; }
+#mdl-root [hidden] { display: none !important; }
+#mdl-toolbar {
+    position: absolute;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid #596980;
+    border-radius: 14px;
+    background: #192232f2;
+    box-shadow: 0 4px 16px #0006;
+    pointer-events: auto;
+}
+#mdl-root button {
+    appearance: none;
+    font: inherit;
+    color: inherit;
+    background: #2b3a52;
+    border: 1px solid #52637e;
+    border-radius: 9px;
+    min-width: 44px;
+    min-height: 44px;
+    width: auto;
+    height: auto;
+    padding: 8px 12px;
+    margin: 0;
+    cursor: pointer;
+    touch-action: manipulation;
+    box-shadow: none;
+}
+#mdl-root button:hover { background: #3a506f; }
+#mdl-root button[aria-pressed="false"] { opacity: .65; }
+#mdl-root button:focus-visible,
+#mdl-root input:focus-visible,
+#mdl-root select:focus-visible { outline: 2px solid #a6c9ff; outline-offset: 2px; }
+#mdl-root #mdl-modal {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background: #0009;
+    pointer-events: auto;
+}
+#mdl-dialog {
+    width: 420px;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: auto;
+    overscroll-behavior: contain;
+    background: #192232;
+    border: 1px solid #667b9b;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 12px 60px #0008;
+    color: #edf2fa;
+    scrollbar-gutter: stable;
+}
+#mdl-dialog header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 16px; }
+#mdl-dialog strong { font-size: 19px; }
+#mdl-dialog small { display: block; font-size: 12px; color: #b3c4db; }
+#mdl-dialog p { font-size: 12px; color: #b3c4db; line-height: 1.6; margin: 10px 0; }
+#mdl-dialog .mdl-field { display: flex; flex-direction: column; gap: 7px; margin: 12px 0; font-size: 14px; }
+#mdl-dialog select,
+#mdl-dialog input[type="number"] {
+    font: inherit;
+    font-size: 16px;
+    color: #edf2fa;
+    background: #101927;
+    border: 1px solid #667b9b;
+    border-radius: 8px;
+    min-height: 44px;
+    padding: 7px 8px;
+    margin: 0;
+    width: 100%;
+    min-width: 0;
+    box-shadow: none;
+}
+#mdl-dialog input[type="checkbox"] { appearance: auto; width: 20px; height: 20px; margin: 0; accent-color: #97bdff; flex: 0 0 auto; }
+#mdl-dialog .mdl-check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; min-height: 40px; cursor: pointer; }
+#mdl-dialog .mdl-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+#mdl-dialog .mdl-width { display: grid; grid-template-columns: 1fr 88px; align-items: center; gap: 8px 14px; margin: 12px 0; font-size: 14px; }
+#mdl-dialog input[type="range"] { appearance: auto; grid-column: 1 / -1; width: 100%; min-width: 0; height: 32px; margin: 0; padding: 0; accent-color: #97bdff; background: transparent; box-shadow: none; }
+#mdl-dialog .mdl-presets { gap: 6px; margin: 14px 0; }
+#mdl-dialog .mdl-presets button { font-size: 13px; padding-inline: 10px; flex: 1 1 auto; }
+#mdl-dialog footer { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 14px; border-top: 1px solid #465874; }
+#mdl-dialog footer button { font-size: 13px; }
+#mdl-root #mdl-close { padding: 4px 12px; font-size: 24px; line-height: 1; }
